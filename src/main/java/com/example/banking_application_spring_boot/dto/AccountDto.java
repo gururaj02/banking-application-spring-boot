@@ -17,4 +17,5 @@ package com.example.banking_application_spring_boot.dto;
 // We can use record class instead of DTO's to transfer the data between client and server
 // Record class is immutable
 public record AccountDto(Long id, String accountHolderName, double balance) {
+
 }

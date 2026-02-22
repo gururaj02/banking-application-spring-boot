@@ -2,6 +2,8 @@ package com.example.banking_application_spring_boot.service.impl;
 
 import com.example.banking_application_spring_boot.dto.AccountDto;
 import com.example.banking_application_spring_boot.entity.Account;
+import com.example.banking_application_spring_boot.exception.AccountException;
+import com.example.banking_application_spring_boot.exception.InsufficientBalanceException;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
 import com.example.banking_application_spring_boot.repository.AccountRepository;
 import com.example.banking_application_spring_boot.service.AccountService;
@@ -31,7 +33,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDto getAccountById(Long id) {
 
-        Account account = accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account Does Not Exists!!"));
+        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
 
         return AccountMapper.mapToAccountDto(account);
     }
@@ -39,7 +41,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDto deposit(Long id, double amount) {
 
-        Account account = accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account Does Not Exists!!"));
+        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
         double total = account.getBalance() + amount;
         account.setBalance(total);
         Account savedAccount = accountRepository.save(account);
@@ -49,10 +51,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto withdraw(Long id, double amount) {
-        Account account = accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account Does Not Exists!!"));
+        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
 
         if(account.getBalance() < amount) {
-            throw new RuntimeException("Insufficient Balance!");
+            throw new InsufficientBalanceException("Insufficient Balance!");
         }
 
         double total = account.getBalance() - amount;
@@ -75,7 +77,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void deleteAccount(Long id) {
 
-        Account account = accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account Does Not Exists!!"));
+        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
         accountRepository.deleteById(id);
     }
 }
