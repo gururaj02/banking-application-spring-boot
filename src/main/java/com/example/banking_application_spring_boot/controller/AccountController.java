@@ -1,9 +1,6 @@
 package com.example.banking_application_spring_boot.controller;
 
-import com.example.banking_application_spring_boot.dto.AccountDto;
-import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
-import com.example.banking_application_spring_boot.dto.DepositRequestDto;
-import com.example.banking_application_spring_boot.dto.WithdrawRequestDto;
+import com.example.banking_application_spring_boot.dto.*;
 import com.example.banking_application_spring_boot.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +49,15 @@ public class AccountController {
     public ResponseEntity<AccountDto> withdraw(@RequestBody WithdrawRequestDto withdrawRequest) {
 
         AccountDto accountDto = accountService.withdraw(withdrawRequest.amount());
+
+        return ResponseEntity.ok(accountDto);
+    }
+
+    // Transfer Money
+    @PutMapping("/transfer")
+    public ResponseEntity<AccountDto> transfer(@RequestBody TransferRequestDto transferRequest) {
+
+        AccountDto accountDto = accountService.transfer(transferRequest.receiverAccountNumber(), transferRequest.amount());
 
         return ResponseEntity.ok(accountDto);
     }

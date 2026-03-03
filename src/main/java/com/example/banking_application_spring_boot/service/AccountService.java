@@ -20,4 +20,6 @@ public interface AccountService {
     void deleteAccount(Long id);
 
     AccountDto getMyAccount();
+
+    AccountDto transfer(Long receiverAccountNumber, double amount);
 }

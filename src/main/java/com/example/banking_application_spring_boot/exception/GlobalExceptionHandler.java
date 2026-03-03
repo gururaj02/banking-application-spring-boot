@@ -40,6 +40,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    // 2. TransferringToOwnAccountException
+    @ExceptionHandler(TransferringToOwnAccountException.class)
+    public ResponseEntity<ErrorDetails> handleTransferringToOwnAccountException(TransferringToOwnAccountException exception, WebRequest request) {
+
+        ErrorDetails errorDetails = new ErrorDetails(
+                LocalDateTime.now(),
+                exception.getMessage(),
+                request.getDescription(false),
+                "TRANSFERRING_TO_OWN_ACCOUNT"
+        );
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
     // Handle Generic Exception - Exception
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDetails> handleGenericException(Exception exception, WebRequest  request) {

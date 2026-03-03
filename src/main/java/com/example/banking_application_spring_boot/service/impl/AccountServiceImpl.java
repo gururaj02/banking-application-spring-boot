@@ -6,10 +6,12 @@ import com.example.banking_application_spring_boot.entity.Account;
 import com.example.banking_application_spring_boot.entity.Users;
 import com.example.banking_application_spring_boot.exception.AccountException;
 import com.example.banking_application_spring_boot.exception.InsufficientBalanceException;
+import com.example.banking_application_spring_boot.exception.TransferringToOwnAccountException;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
 import com.example.banking_application_spring_boot.repository.AccountRepository;
 import com.example.banking_application_spring_boot.repository.UserDetailsRepository;
 import com.example.banking_application_spring_boot.service.AccountService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -30,21 +32,21 @@ public class AccountServiceImpl implements AccountService {
         this.userDetailsRepository = userDetailsRepository;
     }
 
-    // 1. Create Account
+    // Create Account
     @Override
     public AccountDto createAccount(CreateAccountRequest createAccountRequest) {
 
-        // 1 Get logged-in username
+        // Get logged-in username
         String username = Objects.requireNonNull(SecurityContextHolder
                         .getContext()
                         .getAuthentication())
                 .getName();
 
-        // 2 Get user from DB
+        // Get user from DB
         Users user = userDetailsRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 3 Check if account already exists
+        // Check if account already exists
         if (user.getAccount() != null) {
             throw new RuntimeException("Account already exists");
         }
@@ -52,7 +54,7 @@ public class AccountServiceImpl implements AccountService {
 //            throw new AccountException("Account already exists");
 //        }
 
-        // 4 Create account
+        // Create account
         Account account = new Account();
         account.setAccountHolderName(createAccountRequest.accountHolderName());
         account.setBalance(createAccountRequest.initialDeposit());
@@ -60,11 +62,11 @@ public class AccountServiceImpl implements AccountService {
 
         Account savedAccount = accountRepository.save(account);
 
-        // 5 Map to DTO
+        // Map to DTO
         return AccountMapper.mapToAccountDto(savedAccount);
     }
 
-    // 2. Get Current user account
+    // Get Current user account
     @Override
     public AccountDto getMyAccount() {
         String username = Objects.requireNonNull(SecurityContextHolder
@@ -89,7 +91,9 @@ public class AccountServiceImpl implements AccountService {
         return AccountMapper.mapToAccountDto(account);
     }
 
+    // Deposit Amount
     @Override
+    @Transactional
     public AccountDto deposit(double amount) {
 
         if (amount <= 0) {
@@ -115,7 +119,9 @@ public class AccountServiceImpl implements AccountService {
         return AccountMapper.mapToAccountDto(updatedAccount);
     }
 
+    // Withdraw Amount
     @Override
+    @Transactional
     public AccountDto withdraw(double amount) {
 
         if (amount <= 0) {
@@ -144,6 +150,57 @@ public class AccountServiceImpl implements AccountService {
         return AccountMapper.mapToAccountDto(updatedAccount);
     }
 
+    // Transfer Money
+    @Override
+    @Transactional
+    public AccountDto transfer(Long receiverAccountNumber, double amount) {
+
+        if (amount <= 0) {
+            throw new AccountException("Transfer amount must be greater than zero");
+        }
+
+        // Sender
+        String username = Objects.requireNonNull(SecurityContextHolder
+                        .getContext()
+                        .getAuthentication())
+                .getName();
+
+        Users senderUser = userDetailsRepository.findByUsername(username)
+                .orElseThrow(() -> new AccountException("Sender Not Found"));
+
+        Account senderAccount = accountRepository.findByUser(senderUser)
+                .orElseThrow(() -> new AccountException("Sender Account Not Found"));
+
+        // Receiver
+        Users receiverUser = userDetailsRepository.findById(receiverAccountNumber)
+                .orElseThrow(() -> new AccountException("Receiver Not Found"));
+
+        Account receiverAccount = accountRepository.findByUser(receiverUser)
+                .orElseThrow(() -> new AccountException("Receiver Account Not Found"));
+
+        // Prevent self transfer
+        if (senderAccount.getId().equals(receiverAccount.getId())) {
+            throw new TransferringToOwnAccountException("Cannot Transfer To Your Own Account");
+        }
+
+        // Check balance
+        if (senderAccount.getBalance() < amount) {
+            throw new InsufficientBalanceException("Insufficient Balance For Transfer");
+        }
+
+        // Perform Transfer
+        senderAccount.setBalance(senderAccount.getBalance() - amount);
+        receiverAccount.setBalance(receiverAccount.getBalance() + amount);
+
+        // Save both
+        accountRepository.save(senderAccount);
+        accountRepository.save(receiverAccount);
+
+        return AccountMapper.mapToAccountDto(senderAccount);
+    }
+
+
+    // TODO: Get all accounts for ADMIN only
     @Override
     public List<AccountDto> getAllAccounts() {
 
@@ -154,6 +211,7 @@ public class AccountServiceImpl implements AccountService {
                 .collect(Collectors.toList());
     }
 
+    // TODO: Delete account
     @Override
     public void deleteAccount(Long id) {
 
