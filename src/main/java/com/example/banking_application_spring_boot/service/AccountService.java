@@ -1,12 +1,13 @@
 package com.example.banking_application_spring_boot.service;
 
 import com.example.banking_application_spring_boot.dto.AccountDto;
+import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
 
 import java.util.List;
 
 public interface AccountService {
 
-    AccountDto createAccount(AccountDto accountDto);
+    AccountDto createAccount(CreateAccountRequest createAccountRequest);
 
     AccountDto getAccountById(Long id);
 
