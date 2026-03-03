@@ -90,19 +90,48 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountDto deposit(Long id, double amount) {
+    public AccountDto deposit(double amount) {
 
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
+        if (amount <= 0) {
+            throw new AccountException("Deposit amount must be greater than zero");
+        }
+
+        String username = Objects.requireNonNull(SecurityContextHolder
+                        .getContext()
+                        .getAuthentication())
+                .getName();
+
+        Users user = userDetailsRepository.findByUsername(username)
+                .orElseThrow(() -> new AccountException("User Not Found"));
+
+        Account account = accountRepository.findByUser(user)
+                .orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
+
         double total = account.getBalance() + amount;
         account.setBalance(total);
-        Account savedAccount = accountRepository.save(account);
 
-        return AccountMapper.mapToAccountDto(savedAccount);
+        Account updatedAccount = accountRepository.save(account);
+
+        return AccountMapper.mapToAccountDto(updatedAccount);
     }
 
     @Override
-    public AccountDto withdraw(Long id, double amount) {
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
+    public AccountDto withdraw(double amount) {
+
+        if (amount <= 0) {
+            throw new AccountException("Withdraw amount must be greater than zero");
+        }
+
+        String username = Objects.requireNonNull(SecurityContextHolder
+                        .getContext()
+                        .getAuthentication())
+                .getName();
+
+        Users user = userDetailsRepository.findByUsername(username)
+                .orElseThrow(() -> new AccountException("User Not Found"));
+
+        Account account = accountRepository.findByUser(user)
+                .orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
 
         if(account.getBalance() < amount) {
             throw new InsufficientBalanceException("Insufficient Balance!");
@@ -110,9 +139,9 @@ public class AccountServiceImpl implements AccountService {
 
         double total = account.getBalance() - amount;
         account.setBalance(total);
-        Account savedAccount = accountRepository.save(account);
+        Account updatedAccount = accountRepository.save(account);
 
-        return AccountMapper.mapToAccountDto(savedAccount);
+        return AccountMapper.mapToAccountDto(updatedAccount);
     }
 
     @Override

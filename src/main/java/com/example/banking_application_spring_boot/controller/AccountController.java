@@ -2,12 +2,13 @@ package com.example.banking_application_spring_boot.controller;
 
 import com.example.banking_application_spring_boot.dto.AccountDto;
 import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
+import com.example.banking_application_spring_boot.dto.DepositRequestDto;
+import com.example.banking_application_spring_boot.dto.WithdrawRequestDto;
 import com.example.banking_application_spring_boot.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,27 +37,25 @@ public class AccountController {
 
         return ResponseEntity.ok(accountDto);
     }
-//
-//    // Deposit REST API
-//    @PutMapping("/{id}/deposit")
-//    public ResponseEntity<AccountDto> deposit(@PathVariable Long id, @RequestBody Map<String, Double> request) {
-//
-//        Double amount = request.get("amount");
-//        AccountDto accountDto = accountService.deposit(id, amount);
-//
-//        return ResponseEntity.ok(accountDto);
-//    }
-//
-//    // Withdraw REST API
-//    @PutMapping("/{id}/withdraw")
-//    public ResponseEntity<AccountDto> withdraw(@PathVariable Long id, @RequestBody Map<String, Double> request) {
-//
-//        Double amount = request.get("amount");
-//        AccountDto accountDto = accountService.withdraw(id, amount);
-//
-//        return ResponseEntity.ok(accountDto);
-//    }
-//
+
+    // Deposit REST API
+    @PutMapping("/deposit")
+    public ResponseEntity<AccountDto> deposit(@RequestBody DepositRequestDto depositRequest) {
+
+        AccountDto accountDto = accountService.deposit(depositRequest.amount());
+
+        return ResponseEntity.ok(accountDto);
+    }
+
+    // Withdraw REST API
+    @PutMapping("/withdraw")
+    public ResponseEntity<AccountDto> withdraw(@RequestBody WithdrawRequestDto withdrawRequest) {
+
+        AccountDto accountDto = accountService.withdraw(withdrawRequest.amount());
+
+        return ResponseEntity.ok(accountDto);
+    }
+
 //    // Get All Accounts REST API
 //    @GetMapping
 //    public ResponseEntity<List<AccountDto>> getAllAccounts() {

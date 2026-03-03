@@ -11,9 +11,9 @@ public interface AccountService {
 
     AccountDto getAccountById(Long id);
 
-    AccountDto deposit(Long id, double amount);
+    AccountDto deposit(double amount);
 
-    AccountDto withdraw(Long id, double amount);
+    AccountDto withdraw(double amount);
 
     List<AccountDto> getAllAccounts();
 
