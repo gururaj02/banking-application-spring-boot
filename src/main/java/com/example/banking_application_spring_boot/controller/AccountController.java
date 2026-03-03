@@ -29,13 +29,13 @@ public class AccountController {
         return new ResponseEntity<>(accountDto, HttpStatus.CREATED);
     }
 
-//    // Get Account REST API
-//    @GetMapping("/{id}")
-//    public ResponseEntity<AccountDto> getAccountById(@PathVariable Long id) {
-//        AccountDto accountDto = accountService.getAccountById(id);
-//
-//        return ResponseEntity.ok(accountDto);
-//    }
+    // Get Account REST API
+    @GetMapping("/me")
+    public ResponseEntity<AccountDto> getMyAccount() {
+        AccountDto accountDto = accountService.getMyAccount();
+
+        return ResponseEntity.ok(accountDto);
+    }
 //
 //    // Deposit REST API
 //    @PutMapping("/{id}/deposit")

@@ -30,7 +30,7 @@ public class AccountServiceImpl implements AccountService {
         this.userDetailsRepository = userDetailsRepository;
     }
 
-    // Create Account
+    // 1. Create Account
     @Override
     public AccountDto createAccount(CreateAccountRequest createAccountRequest) {
 
@@ -48,6 +48,9 @@ public class AccountServiceImpl implements AccountService {
         if (user.getAccount() != null) {
             throw new RuntimeException("Account already exists");
         }
+//        if (accountRepository.existsByUser(user)) {
+//            throw new AccountException("Account already exists");
+//        }
 
         // 4 Create account
         Account account = new Account();
@@ -59,6 +62,23 @@ public class AccountServiceImpl implements AccountService {
 
         // 5 Map to DTO
         return AccountMapper.mapToAccountDto(savedAccount);
+    }
+
+    // 2. Get Current user account
+    @Override
+    public AccountDto getMyAccount() {
+        String username = Objects.requireNonNull(SecurityContextHolder
+                        .getContext()
+                        .getAuthentication())
+                .getName();
+
+        Users user = userDetailsRepository.findByUsername(username)
+                .orElseThrow(() -> new AccountException("User Not Found!"));
+
+        Account account = accountRepository.findByUser(user)
+                .orElseThrow(() -> new AccountException("User Not Found!"));
+
+        return AccountMapper.mapToAccountDto(account);
     }
 
     @Override
