@@ -63,11 +63,11 @@ public class AccountController {
     }
 
 
-    // TODO: Get All Transactions for a user
+    // TODO: Get All Transactions for a particular user
 
-    // TODO: Delete Account
+    // TODO: Delete user Account
 
-    // TODO: Get All Accounts for ADMIN
+    // TODO: Get All Users Accounts (only access for ADMIN)
 
 //    // Get All Accounts REST API
 //    @GetMapping
