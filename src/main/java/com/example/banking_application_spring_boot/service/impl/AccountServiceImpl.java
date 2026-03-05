@@ -5,6 +5,7 @@ import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
 import com.example.banking_application_spring_boot.entity.Account;
 import com.example.banking_application_spring_boot.entity.Users;
 import com.example.banking_application_spring_boot.exception.AccountException;
+import com.example.banking_application_spring_boot.exception.DepositOrWithdrawZeroRsException;
 import com.example.banking_application_spring_boot.exception.InsufficientBalanceException;
 import com.example.banking_application_spring_boot.exception.TransferringToOwnAccountException;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
@@ -97,7 +98,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountDto deposit(double amount) {
 
         if (amount <= 0) {
-            throw new AccountException("Deposit amount must be greater than zero");
+            throw new DepositOrWithdrawZeroRsException("Deposit amount must be greater than zero");
         }
 
         String username = Objects.requireNonNull(SecurityContextHolder
@@ -125,7 +126,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountDto withdraw(double amount) {
 
         if (amount <= 0) {
-            throw new AccountException("Withdraw amount must be greater than zero");
+            throw new DepositOrWithdrawZeroRsException("Withdraw amount must be greater than zero");
         }
 
         String username = Objects.requireNonNull(SecurityContextHolder
@@ -156,7 +157,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountDto transfer(Long receiverAccountNumber, double amount) {
 
         if (amount <= 0) {
-            throw new AccountException("Transfer amount must be greater than zero");
+            throw new DepositOrWithdrawZeroRsException("Transfer amount must be greater than zero");
         }
 
         // Sender
@@ -199,8 +200,6 @@ public class AccountServiceImpl implements AccountService {
         return AccountMapper.mapToAccountDto(senderAccount);
     }
 
-
-    // TODO: Get all accounts for ADMIN only
     @Override
     public List<AccountDto> getAllAccounts() {
 

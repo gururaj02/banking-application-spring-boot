@@ -54,6 +54,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    // 2. DepositOrWithdrawZeroRsException
+    @ExceptionHandler(DepositOrWithdrawZeroRsException.class)
+    public ResponseEntity<ErrorDetails> handleDepositOrWithdrawZeroRsException(DepositOrWithdrawZeroRsException exception, WebRequest request) {
+
+        ErrorDetails errorDetails = new ErrorDetails(
+                LocalDateTime.now(),
+                exception.getMessage(),
+                request.getDescription(false),
+                "ZERO_RS_NOT_ALLOWED"
+        );
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
     // Handle Generic Exception - Exception
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDetails> handleGenericException(Exception exception, WebRequest  request) {

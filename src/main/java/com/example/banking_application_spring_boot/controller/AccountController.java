@@ -4,8 +4,10 @@ import com.example.banking_application_spring_boot.dto.*;
 import com.example.banking_application_spring_boot.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -62,21 +64,19 @@ public class AccountController {
         return ResponseEntity.ok(accountDto);
     }
 
+    // Get All Accounts REST API (Only for ADMIN)
+    @GetMapping
+    @PreAuthorize("hasAuthority('ACCOUNT_WRITE')")
+    public ResponseEntity<List<AccountDto>> getAllAccounts() {
+
+        List<AccountDto> accounts = accountService.getAllAccounts();
+
+        return ResponseEntity.ok(accounts);
+    }
 
     // TODO: Get All Transactions for a particular user
 
     // TODO: Delete user Account
-
-    // TODO: Get All Users Accounts (only access for ADMIN)
-
-//    // Get All Accounts REST API
-//    @GetMapping
-//    public ResponseEntity<List<AccountDto>> getAllAccounts() {
-//
-//        List<AccountDto> accounts = accountService.getAllAccounts();
-//
-//        return ResponseEntity.ok(accounts);
-//    }
 //
 //    // Delete Account REST API
 //    @DeleteMapping("/{id}")
