@@ -23,4 +23,10 @@ public interface AccountService {
     AccountDto getMyAccount();
 
     AccountDto transfer(Long receiverAccountNumber, double amount);
+
+
+    // TODO: Save the transactions of a user in Transactions table
+
+    // TODO: Get All Transactions for a particular user
+
 }
