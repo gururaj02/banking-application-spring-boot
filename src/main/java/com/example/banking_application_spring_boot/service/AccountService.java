@@ -9,8 +9,6 @@ public interface AccountService {
 
     AccountDto createAccount(CreateAccountRequest createAccountRequest);
 
-    AccountDto getAccountById(Long id);
-
     AccountDto deposit(double amount);
 
     AccountDto withdraw(double amount);

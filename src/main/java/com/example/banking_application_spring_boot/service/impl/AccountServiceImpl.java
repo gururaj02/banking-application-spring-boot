@@ -89,14 +89,6 @@ public class AccountServiceImpl implements AccountService {
         return AccountMapper.mapToAccountDto(account);
     }
 
-    @Override
-    public AccountDto getAccountById(Long id) {
-
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
-
-        return AccountMapper.mapToAccountDto(account);
-    }
-
     // Deposit Amount
     @Override
     @Transactional
