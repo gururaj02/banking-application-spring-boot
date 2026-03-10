@@ -1,10 +1,18 @@
 package com.example.banking_application_spring_boot.entity;
 
+import com.example.banking_application_spring_boot.entity.enums.TransactionStatus;
+import com.example.banking_application_spring_boot.entity.enums.TransactionType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "transactions")
+@Getter
+@Setter
 public class Transaction {
 
     @Id
@@ -12,21 +20,25 @@ public class Transaction {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_account_id", nullable = false)
-    private Account fromAccount;
+    @JoinColumn(name = "sender_account_id")
+    private Account senderAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_account_id", nullable = false)
-    private Account toAccount;
+    @JoinColumn(name = "receiver_account_id")
+    private Account receiverAccount;
 
     private double amount;
 
     @Column(nullable = false)
-    private String transactionType;
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
 
+    @CreationTimestamp
     private LocalDateTime transactionDate;
 
-    @Column(nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus status;
+
+    private String description;
 
 }
