@@ -42,7 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setStatus(TransactionStatus.SUCCESS);
         transaction.setTransactionType(TransactionType.WITHDRAW);
         transaction.setTransactionDate(LocalDateTime.now());
-        transaction.setReceiverAccount(sender);
+        transaction.setSenderAccount(sender);
         transaction.setDescription("Money Withdrawn");
 
         transactionRepository.save(transaction);
