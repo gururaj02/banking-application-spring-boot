@@ -3,24 +3,20 @@ package com.example.banking_application_spring_boot.service.impl;
 import com.example.banking_application_spring_boot.dto.AccountDto;
 import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
 import com.example.banking_application_spring_boot.entity.Account;
-import com.example.banking_application_spring_boot.entity.Transaction;
 import com.example.banking_application_spring_boot.entity.Users;
-import com.example.banking_application_spring_boot.entity.enums.TransactionStatus;
-import com.example.banking_application_spring_boot.entity.enums.TransactionType;
 import com.example.banking_application_spring_boot.exception.AccountException;
 import com.example.banking_application_spring_boot.exception.DepositOrWithdrawZeroRsException;
 import com.example.banking_application_spring_boot.exception.InsufficientBalanceException;
 import com.example.banking_application_spring_boot.exception.TransferringToOwnAccountException;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
 import com.example.banking_application_spring_boot.repository.AccountRepository;
-import com.example.banking_application_spring_boot.repository.TransactionRepository;
 import com.example.banking_application_spring_boot.repository.UserDetailsRepository;
 import com.example.banking_application_spring_boot.service.AccountService;
+import com.example.banking_application_spring_boot.service.TransactionService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -30,12 +26,12 @@ public class AccountServiceImpl implements AccountService {
 
     private AccountRepository accountRepository;
     private UserDetailsRepository userDetailsRepository;
-    private final TransactionRepository transactionRepository;
+    private final TransactionService transactionService;
 
-    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionRepository transactionRepository) {
+    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionService transactionService) {
         this.accountRepository = accountRepository;
         this.userDetailsRepository = userDetailsRepository;
-        this.transactionRepository = transactionRepository;
+        this.transactionService = transactionService;
     }
 
     // Create Account
@@ -114,15 +110,7 @@ public class AccountServiceImpl implements AccountService {
         Account updatedAccount = accountRepository.save(account);
 
         // Saving transaction
-        Transaction transaction = new Transaction();
-        transaction.setAmount(amount);
-        transaction.setStatus(TransactionStatus.SUCCESS);
-        transaction.setTransactionDate(LocalDateTime.now());
-        transaction.setTransactionType(TransactionType.DEPOSIT);
-        transaction.setReceiverAccount(account);
-        transaction.setDescription("Money deposited");
-
-        transactionRepository.save(transaction);
+        transactionService.recordDeposit(account, amount);
 
         return AccountMapper.mapToAccountDto(updatedAccount);
     }
@@ -156,15 +144,7 @@ public class AccountServiceImpl implements AccountService {
         Account updatedAccount = accountRepository.save(account);
 
         // Saving transaction
-        Transaction transaction = new Transaction();
-        transaction.setAmount(amount);
-        transaction.setStatus(TransactionStatus.SUCCESS);
-        transaction.setTransactionType(TransactionType.WITHDRAW);
-        transaction.setTransactionDate(LocalDateTime.now());
-        transaction.setReceiverAccount(account);
-        transaction.setDescription("Money Withdrawn");
-
-        transactionRepository.save(transaction);
+        transactionService.recordWithdraw(account, amount);
 
         return AccountMapper.mapToAccountDto(updatedAccount);
     }
@@ -216,16 +196,7 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(receiverAccount);
 
         // Saving transaction
-        Transaction transaction = new Transaction();
-        transaction.setAmount(amount);
-        transaction.setStatus(TransactionStatus.SUCCESS);
-        transaction.setTransactionType(TransactionType.TRANSFER);
-        transaction.setTransactionDate(LocalDateTime.now());
-        transaction.setReceiverAccount(receiverAccount);
-        transaction.setSenderAccount(senderAccount);
-        transaction.setDescription("Money Transferred");
-
-        transactionRepository.save(transaction);
+        transactionService.recordTransfer(senderAccount, receiverAccount, amount);
 
         return AccountMapper.mapToAccountDto(senderAccount);
     }
