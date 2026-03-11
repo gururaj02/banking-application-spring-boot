@@ -64,6 +64,15 @@ public class AccountController {
         return ResponseEntity.ok(accountDto);
     }
 
+    // Get All Transactions REST API
+    @GetMapping("/transactions")
+    public ResponseEntity<List<TransactionDto>> getTransactions() {
+
+        List<TransactionDto> transactions = accountService.getMyTransactions();
+
+        return ResponseEntity.ok(transactions);
+    }
+
     // Get All Accounts REST API (Only for ADMIN)
     @GetMapping
     @PreAuthorize("hasAuthority('ACCOUNT_WRITE')")
@@ -74,10 +83,7 @@ public class AccountController {
         return ResponseEntity.ok(accounts);
     }
 
-    // TODO: Get All Transactions for a particular user
-
     // TODO: Delete user Account
-//
 //    // Delete Account REST API
 //    @DeleteMapping("/{id}")
 //    public ResponseEntity<String> deleteAccount(@PathVariable Long id) {

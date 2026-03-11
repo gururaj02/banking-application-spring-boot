@@ -2,14 +2,18 @@ package com.example.banking_application_spring_boot.service.impl;
 
 import com.example.banking_application_spring_boot.dto.AccountDto;
 import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
+import com.example.banking_application_spring_boot.dto.TransactionDto;
 import com.example.banking_application_spring_boot.entity.Account;
+import com.example.banking_application_spring_boot.entity.Transaction;
 import com.example.banking_application_spring_boot.entity.Users;
 import com.example.banking_application_spring_boot.exception.AccountException;
 import com.example.banking_application_spring_boot.exception.DepositOrWithdrawZeroRsException;
 import com.example.banking_application_spring_boot.exception.InsufficientBalanceException;
 import com.example.banking_application_spring_boot.exception.TransferringToOwnAccountException;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
+import com.example.banking_application_spring_boot.mapper.TransactionMapper;
 import com.example.banking_application_spring_boot.repository.AccountRepository;
+import com.example.banking_application_spring_boot.repository.TransactionRepository;
 import com.example.banking_application_spring_boot.repository.UserDetailsRepository;
 import com.example.banking_application_spring_boot.service.AccountService;
 import com.example.banking_application_spring_boot.service.TransactionService;
@@ -27,11 +31,13 @@ public class AccountServiceImpl implements AccountService {
     private AccountRepository accountRepository;
     private UserDetailsRepository userDetailsRepository;
     private final TransactionService transactionService;
+    private final TransactionRepository transactionRepository;
 
-    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionService transactionService) {
+    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionService transactionService, TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
         this.userDetailsRepository = userDetailsRepository;
         this.transactionService = transactionService;
+        this.transactionRepository = transactionRepository;
     }
 
     // Create Account
@@ -199,6 +205,33 @@ public class AccountServiceImpl implements AccountService {
         transactionService.recordTransfer(senderAccount, receiverAccount, amount);
 
         return AccountMapper.mapToAccountDto(senderAccount);
+    }
+
+    // Get All Transactions
+    @Override
+    public List<TransactionDto> getMyTransactions() {
+        // 1 Get logged-in username
+        String username = Objects.requireNonNull(SecurityContextHolder
+                        .getContext()
+                        .getAuthentication())
+                .getName();
+
+        // 2 Get user
+        Users user = userDetailsRepository.findByUsername(username)
+                .orElseThrow(() -> new AccountException("User Not Nound"));
+
+        // 3 Get account
+        Account account = accountRepository.findByUser(user)
+                .orElseThrow(() -> new AccountException("Account Not Found"));
+
+        // 4 Fetch transactions
+        List<Transaction> transactions =
+                transactionRepository.findBySenderAccountOrReceiverAccount(account, account);
+
+        // 5 Convert to DTO
+        return transactions.stream()
+                .map(TransactionMapper::mapToTransactionDto)
+                .toList();
     }
 
     @Override

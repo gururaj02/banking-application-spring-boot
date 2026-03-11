@@ -1,6 +1,9 @@
 package com.example.banking_application_spring_boot.service;
 
+import com.example.banking_application_spring_boot.dto.TransactionDto;
 import com.example.banking_application_spring_boot.entity.Account;
+
+import java.util.List;
 
 public interface TransactionService {
 
