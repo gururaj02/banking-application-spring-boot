@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    // 2. TransferringToOwnAccountException
+    // 3. TransferringToOwnAccountException
     @ExceptionHandler(TransferringToOwnAccountException.class)
     public ResponseEntity<ErrorDetails> handleTransferringToOwnAccountException(TransferringToOwnAccountException exception, WebRequest request) {
 
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    // 2. DepositOrWithdrawZeroRsException
+    // 4. DepositOrWithdrawZeroRsException
     @ExceptionHandler(DepositOrWithdrawZeroRsException.class)
     public ResponseEntity<ErrorDetails> handleDepositOrWithdrawZeroRsException(DepositOrWithdrawZeroRsException exception, WebRequest request) {
 
@@ -63,6 +63,20 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 request.getDescription(false),
                 "ZERO_RS_NOT_ALLOWED"
+        );
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    // 5. InvalidPinException
+    @ExceptionHandler(InvalidPinException.class)
+    public ResponseEntity<ErrorDetails> handleInvalidPinException(InvalidPinException exception, WebRequest request) {
+
+        ErrorDetails errorDetails = new ErrorDetails(
+                LocalDateTime.now(),
+                exception.getMessage(),
+                request.getDescription(false),
+                "INVALID_PIN"
         );
 
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);

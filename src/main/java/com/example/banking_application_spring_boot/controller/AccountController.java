@@ -65,10 +65,10 @@ public class AccountController {
     }
 
     // Get All Transactions REST API
-    @GetMapping("/transactions")
-    public ResponseEntity<List<TransactionDto>> getTransactions() {
+    @PostMapping("/transactions")
+    public ResponseEntity<List<TransactionDto>> getTransactions(@RequestBody PinRequestDto pinRequestDto) {
 
-        List<TransactionDto> transactions = accountService.getMyTransactions();
+        List<TransactionDto> transactions = accountService.getMyTransactions(pinRequestDto.securityPin());
 
         return ResponseEntity.ok(transactions);
     }
@@ -82,6 +82,9 @@ public class AccountController {
 
         return ResponseEntity.ok(accounts);
     }
+
+
+    
 
     // TODO: Delete user Account
 //    // Delete Account REST API

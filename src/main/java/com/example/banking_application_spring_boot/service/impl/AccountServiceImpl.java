@@ -2,14 +2,12 @@ package com.example.banking_application_spring_boot.service.impl;
 
 import com.example.banking_application_spring_boot.dto.AccountDto;
 import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
+import com.example.banking_application_spring_boot.dto.PinRequestDto;
 import com.example.banking_application_spring_boot.dto.TransactionDto;
 import com.example.banking_application_spring_boot.entity.Account;
 import com.example.banking_application_spring_boot.entity.Transaction;
 import com.example.banking_application_spring_boot.entity.Users;
-import com.example.banking_application_spring_boot.exception.AccountException;
-import com.example.banking_application_spring_boot.exception.DepositOrWithdrawZeroRsException;
-import com.example.banking_application_spring_boot.exception.InsufficientBalanceException;
-import com.example.banking_application_spring_boot.exception.TransferringToOwnAccountException;
+import com.example.banking_application_spring_boot.exception.*;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
 import com.example.banking_application_spring_boot.mapper.TransactionMapper;
 import com.example.banking_application_spring_boot.repository.AccountRepository;
@@ -123,7 +121,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Validate PIN
         if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
-            throw new AccountException("Invalid security PIN");
+            throw new InvalidPinException("Invalid security PIN");
         }
 
         double total = account.getBalance() + amount;
@@ -158,7 +156,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Validate PIN
         if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
-            throw new AccountException("Invalid security PIN");
+            throw new InvalidPinException("Invalid security PIN");
         }
 
         if(account.getBalance() < amount) {
@@ -199,12 +197,8 @@ public class AccountServiceImpl implements AccountService {
 
         // Validate PIN
         if (!passwordEncoder.matches(securityPin, senderAccount.getSecurityPin())) {
-            throw new AccountException("Invalid security PIN");
+            throw new InvalidPinException("Invalid security PIN");
         }
-
-        // Receiver (now it's unnecessary because we are using Acc No)
-//        Users receiverUser = userDetailsRepository.findById(receiverAccountNumber)
-//                .orElseThrow(() -> new AccountException("Receiver Not Found"));
 
         // Get receiver account using account number
         Account receiverAccount = accountRepository.findByAccountNumber(receiverAccountNumber)
@@ -236,7 +230,7 @@ public class AccountServiceImpl implements AccountService {
 
     // Get All Transactions
     @Override
-    public List<TransactionDto> getMyTransactions() {
+    public List<TransactionDto> getMyTransactions(String securityPin) {
         // 1 Get logged-in username
         String username = Objects.requireNonNull(SecurityContextHolder
                         .getContext()
@@ -245,17 +239,22 @@ public class AccountServiceImpl implements AccountService {
 
         // 2 Get user
         Users user = userDetailsRepository.findByUsername(username)
-                .orElseThrow(() -> new AccountException("User Not Nound"));
+                .orElseThrow(() -> new AccountException("User Not Found"));
 
         // 3 Get account
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new AccountException("Account Not Found"));
 
-        // 4 Fetch transactions
+        // 4 Validate Pin
+        if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
+            throw new InvalidPinException("Invalid security PIN");
+        }
+
+        // 5 Fetch transactions
         List<Transaction> transactions =
                 transactionRepository.findBySenderAccountOrReceiverAccount(account, account);
 
-        // 5 Convert to DTO
+        // 6 Convert to DTO
         return transactions.stream()
                 .map((transaction) -> TransactionMapper.mapToTransactionDto(transaction))
                 .toList();
@@ -270,6 +269,8 @@ public class AccountServiceImpl implements AccountService {
                 .map((account) -> AccountMapper.mapToAccountDto(account))
                 .collect(Collectors.toList());
     }
+
+
 
     // TODO: Delete account
     @Override

@@ -7,14 +7,6 @@ public class TransactionMapper {
 
     public static TransactionDto mapToTransactionDto(Transaction transaction) {
 
-//        Long senderId = transaction.getSenderAccount() != null
-//                ? transaction.getSenderAccount().getId()
-//                : null;
-//
-//        Long receiverId = transaction.getReceiverAccount() != null
-//                ? transaction.getReceiverAccount().getId()
-//                : null;
-
         String senderAccountNumber =
                 transaction.getSenderAccount() != null
                         ? transaction.getSenderAccount().getAccountNumber()
