@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 public record TransactionDto(
         Long id,
-        String type,
+        String senderAccountNumber,
+        String receiverAccountNumber,
         double amount,
-        Long senderAccountId,
-        Long receiverAccountId,
+        String type,
         LocalDateTime transactionDate,
         String status
 ) {

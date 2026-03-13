@@ -20,11 +20,11 @@ public class Transaction {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_account_number")
+    @JoinColumn(name = "sender_account_id")
     private Account senderAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_account_number")
+    @JoinColumn(name = "receiver_account_id")
     private Account receiverAccount;
 
     private double amount;

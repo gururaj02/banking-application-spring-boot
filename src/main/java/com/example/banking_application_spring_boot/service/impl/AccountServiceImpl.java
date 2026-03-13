@@ -257,7 +257,7 @@ public class AccountServiceImpl implements AccountService {
 
         // 5 Convert to DTO
         return transactions.stream()
-                .map(TransactionMapper::mapToTransactionDto)
+                .map((transaction) -> TransactionMapper.mapToTransactionDto(transaction))
                 .toList();
     }
 

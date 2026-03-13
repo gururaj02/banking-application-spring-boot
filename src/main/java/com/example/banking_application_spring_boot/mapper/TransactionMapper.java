@@ -7,20 +7,30 @@ public class TransactionMapper {
 
     public static TransactionDto mapToTransactionDto(Transaction transaction) {
 
-        Long senderId = transaction.getSenderAccount() != null
-                ? transaction.getSenderAccount().getId()
-                : null;
+//        Long senderId = transaction.getSenderAccount() != null
+//                ? transaction.getSenderAccount().getId()
+//                : null;
+//
+//        Long receiverId = transaction.getReceiverAccount() != null
+//                ? transaction.getReceiverAccount().getId()
+//                : null;
 
-        Long receiverId = transaction.getReceiverAccount() != null
-                ? transaction.getReceiverAccount().getId()
-                : null;
+        String senderAccountNumber =
+                transaction.getSenderAccount() != null
+                        ? transaction.getSenderAccount().getAccountNumber()
+                        : null;
+
+        String receiverAccountNumber =
+                transaction.getReceiverAccount() != null
+                        ? transaction.getReceiverAccount().getAccountNumber()
+                        : null;
 
         return new TransactionDto(
                 transaction.getId(),
-                transaction.getTransactionType().name(),
+                senderAccountNumber,
+                receiverAccountNumber,
                 transaction.getAmount(),
-                senderId,
-                receiverId,
+                transaction.getTransactionType().name(),
                 transaction.getTransactionDate(),
                 transaction.getStatus().name()
         );
