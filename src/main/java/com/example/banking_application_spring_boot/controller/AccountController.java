@@ -41,7 +41,7 @@ public class AccountController {
     @PutMapping("/deposit")
     public ResponseEntity<AccountDto> deposit(@RequestBody DepositRequestDto depositRequest) {
 
-        AccountDto accountDto = accountService.deposit(depositRequest.amount());
+        AccountDto accountDto = accountService.deposit(depositRequest.amount(), depositRequest.securityPin());
 
         return ResponseEntity.ok(accountDto);
     }
@@ -50,7 +50,7 @@ public class AccountController {
     @PutMapping("/withdraw")
     public ResponseEntity<AccountDto> withdraw(@RequestBody WithdrawRequestDto withdrawRequest) {
 
-        AccountDto accountDto = accountService.withdraw(withdrawRequest.amount());
+        AccountDto accountDto = accountService.withdraw(withdrawRequest.amount(), withdrawRequest.securityPin());
 
         return ResponseEntity.ok(accountDto);
     }
@@ -59,7 +59,7 @@ public class AccountController {
     @PutMapping("/transfer")
     public ResponseEntity<AccountDto> transfer(@RequestBody TransferRequestDto transferRequest) {
 
-        AccountDto accountDto = accountService.transfer(transferRequest.receiverAccountNumber(), transferRequest.amount());
+        AccountDto accountDto = accountService.transfer(transferRequest.receiverAccountNumber(), transferRequest.amount(), transferRequest.securityPin());
 
         return ResponseEntity.ok(accountDto);
     }
@@ -94,7 +94,7 @@ public class AccountController {
 //    }
 
     // TODO: Create Account Number instead of Id
-    
+
     // TODO: Enter password for every transactions like deposit, withdraw, and money transfer
 
 }

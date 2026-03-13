@@ -19,6 +19,7 @@ import com.example.banking_application_spring_boot.service.AccountService;
 import com.example.banking_application_spring_boot.service.TransactionService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,16 +29,23 @@ import java.util.stream.Collectors;
 @Service
 public class AccountServiceImpl implements AccountService {
 
-    private AccountRepository accountRepository;
-    private UserDetailsRepository userDetailsRepository;
+    private final AccountRepository accountRepository;
+    private final UserDetailsRepository userDetailsRepository;
     private final TransactionService transactionService;
     private final TransactionRepository transactionRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionService transactionService, TransactionRepository transactionRepository) {
+    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionService transactionService, TransactionRepository transactionRepository, PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
         this.userDetailsRepository = userDetailsRepository;
         this.transactionService = transactionService;
         this.transactionRepository = transactionRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    private String generateAccountNumber() {
+
+        return "ACC" + System.currentTimeMillis();
     }
 
     // Create Account
@@ -66,6 +74,8 @@ public class AccountServiceImpl implements AccountService {
         Account account = new Account();
         account.setAccountHolderName(createAccountRequest.accountHolderName());
         account.setBalance(createAccountRequest.initialDeposit());
+        account.setAccountNumber(generateAccountNumber());
+        account.setSecurityPin(passwordEncoder.encode(createAccountRequest.securityPin()));
         account.setUser(user);
 
         Account savedAccount = accountRepository.save(account);
@@ -94,7 +104,7 @@ public class AccountServiceImpl implements AccountService {
     // Deposit Amount
     @Override
     @Transactional
-    public AccountDto deposit(double amount) {
+    public AccountDto deposit(double amount, String securityPin) {
 
         if (amount <= 0) {
             throw new DepositOrWithdrawZeroRsException("Deposit amount must be greater than zero");
@@ -111,6 +121,11 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
 
+        // Validate PIN
+        if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
+            throw new AccountException("Invalid security PIN");
+        }
+
         double total = account.getBalance() + amount;
         account.setBalance(total);
         Account updatedAccount = accountRepository.save(account);
@@ -124,7 +139,7 @@ public class AccountServiceImpl implements AccountService {
     // Withdraw Amount
     @Override
     @Transactional
-    public AccountDto withdraw(double amount) {
+    public AccountDto withdraw(double amount, String securityPin) {
 
         if (amount <= 0) {
             throw new DepositOrWithdrawZeroRsException("Withdraw amount must be greater than zero");
@@ -140,6 +155,11 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
+
+        // Validate PIN
+        if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
+            throw new AccountException("Invalid security PIN");
+        }
 
         if(account.getBalance() < amount) {
             throw new InsufficientBalanceException("Insufficient Balance!");
@@ -158,13 +178,13 @@ public class AccountServiceImpl implements AccountService {
     // Transfer Money
     @Override
     @Transactional
-    public AccountDto transfer(Long receiverAccountNumber, double amount) {
+    public AccountDto transfer(String receiverAccountNumber, double amount, String securityPin) {
 
         if (amount <= 0) {
             throw new DepositOrWithdrawZeroRsException("Transfer amount must be greater than zero");
         }
 
-        // Sender
+        // Get logged-in user
         String username = Objects.requireNonNull(SecurityContextHolder
                         .getContext()
                         .getAuthentication())
@@ -173,14 +193,21 @@ public class AccountServiceImpl implements AccountService {
         Users senderUser = userDetailsRepository.findByUsername(username)
                 .orElseThrow(() -> new AccountException("Sender Not Found"));
 
+        // Get sender account
         Account senderAccount = accountRepository.findByUser(senderUser)
                 .orElseThrow(() -> new AccountException("Sender Account Not Found"));
 
-        // Receiver
-        Users receiverUser = userDetailsRepository.findById(receiverAccountNumber)
-                .orElseThrow(() -> new AccountException("Receiver Not Found"));
+        // Validate PIN
+        if (!passwordEncoder.matches(securityPin, senderAccount.getSecurityPin())) {
+            throw new AccountException("Invalid security PIN");
+        }
 
-        Account receiverAccount = accountRepository.findByUser(receiverUser)
+        // Receiver (now it's unnecessary because we are using Acc No)
+//        Users receiverUser = userDetailsRepository.findById(receiverAccountNumber)
+//                .orElseThrow(() -> new AccountException("Receiver Not Found"));
+
+        // Get receiver account using account number
+        Account receiverAccount = accountRepository.findByAccountNumber(receiverAccountNumber)
                 .orElseThrow(() -> new AccountException("Receiver Account Not Found"));
 
         // Prevent self transfer

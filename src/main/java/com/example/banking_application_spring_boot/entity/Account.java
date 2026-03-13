@@ -18,11 +18,18 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "account_number", unique = true, nullable = false)
+    private String accountNumber;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private Users user;
 
     @Column(name = "account_holder_name", nullable = false)
     private String accountHolderName;
+
     private double balance;
+
+    @Column(nullable = false)
+    private String securityPin;
 }

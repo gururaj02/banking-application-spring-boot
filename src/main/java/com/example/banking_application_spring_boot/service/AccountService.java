@@ -10,13 +10,13 @@ public interface AccountService {
 
     AccountDto createAccount(CreateAccountRequest createAccountRequest);
 
-    AccountDto deposit(double amount);
+    AccountDto deposit(double amount, String securityPin);
 
-    AccountDto withdraw(double amount);
+    AccountDto withdraw(double amount, String securityPin);
 
     AccountDto getMyAccount();
 
-    AccountDto transfer(Long receiverAccountNumber, double amount);
+    AccountDto transfer(String receiverAccountNumber, double amount, String securityPin);
 
     List<TransactionDto> getMyTransactions();
 
