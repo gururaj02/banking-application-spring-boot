@@ -32,4 +32,7 @@ public class Account {
 
     @Column(nullable = false)
     private String securityPin;
+
+    @Column(name = "is_active")
+    private boolean isActive;
 }

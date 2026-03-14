@@ -23,8 +23,5 @@ public interface AccountService {
 
     List<AccountDto> getAllAccounts();
 
-
-
-    // TODO: Dele account
-    void deleteAccount(Long id);
+    void deleteAccount(String securityPin);
 }

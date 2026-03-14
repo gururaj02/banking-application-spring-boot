@@ -60,23 +60,43 @@ public class AccountServiceImpl implements AccountService {
         Users user = userDetailsRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check if account already exists
-        if (user.getAccount() != null) {
-            throw new RuntimeException("Account already exists");
+        Account account = user.getAccount();
+
+        // Case 1: Account already active
+        if (account != null && account.isActive()) {
+            throw new AccountException("Account already exists");
         }
-//        if (accountRepository.existsByUser(user)) {
-//            throw new AccountException("Account already exists");
-//        }
+
+        // Case 2: Account exists but closed → Reactivate
+        if (account != null && !account.isActive()) {
+
+            if (createAccountRequest.initialDeposit() <= 0) {
+                throw new InsufficientBalanceException("Initial deposit must be greater than zero");
+            }
+
+            account.setActive(true);
+            account.setSecurityPin(passwordEncoder.encode(createAccountRequest.securityPin()));
+            account.setAccountHolderName(createAccountRequest.accountHolderName());
+
+            Account savedAccount = accountRepository.save(account);
+
+            return AccountMapper.mapToAccountDto(savedAccount);
+        }
+
+        if (createAccountRequest.initialDeposit() <= 0) {
+            throw new InsufficientBalanceException("Initial deposit must be greater than zero");
+        }
 
         // Create account
-        Account account = new Account();
-        account.setAccountHolderName(createAccountRequest.accountHolderName());
-        account.setBalance(createAccountRequest.initialDeposit());
-        account.setAccountNumber(generateAccountNumber());
-        account.setSecurityPin(passwordEncoder.encode(createAccountRequest.securityPin()));
-        account.setUser(user);
+        Account newAccount = new Account();
+        newAccount.setAccountHolderName(createAccountRequest.accountHolderName());
+        newAccount.setBalance(createAccountRequest.initialDeposit());
+        newAccount.setAccountNumber(generateAccountNumber());
+        newAccount.setSecurityPin(passwordEncoder.encode(createAccountRequest.securityPin()));
+        newAccount.setActive(true);
+        newAccount.setUser(user);
 
-        Account savedAccount = accountRepository.save(account);
+        Account savedAccount = accountRepository.save(newAccount);
 
         // Map to DTO
         return AccountMapper.mapToAccountDto(savedAccount);
@@ -95,6 +115,11 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new AccountException("User Not Found!"));
+
+        // Check Account is Active
+        if (!account.isActive()) {
+            throw new AccountException("Account is closed");
+        }
 
         return AccountMapper.mapToAccountDto(account);
     }
@@ -118,6 +143,11 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
+
+        // Check Account is Active
+        if (!account.isActive()) {
+            throw new AccountException("Account is closed");
+        }
 
         // Validate PIN
         if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
@@ -153,6 +183,11 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
+
+        // Check Account is Active
+        if (!account.isActive()) {
+            throw new AccountException("Account is closed");
+        }
 
         // Validate PIN
         if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
@@ -195,6 +230,11 @@ public class AccountServiceImpl implements AccountService {
         Account senderAccount = accountRepository.findByUser(senderUser)
                 .orElseThrow(() -> new AccountException("Sender Account Not Found"));
 
+        // Check Account is Active
+        if (!senderAccount.isActive()) {
+            throw new AccountException("Account is closed");
+        }
+
         // Validate PIN
         if (!passwordEncoder.matches(securityPin, senderAccount.getSecurityPin())) {
             throw new InvalidPinException("Invalid security PIN");
@@ -203,6 +243,11 @@ public class AccountServiceImpl implements AccountService {
         // Get receiver account using account number
         Account receiverAccount = accountRepository.findByAccountNumber(receiverAccountNumber)
                 .orElseThrow(() -> new AccountException("Receiver Account Not Found"));
+
+        // Check Account is Active
+        if (!receiverAccount.isActive()) {
+            throw new AccountException("Receiver Account is closed");
+        }
 
         // Prevent self transfer
         if (senderAccount.getId().equals(receiverAccount.getId())) {
@@ -245,6 +290,11 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new AccountException("Account Not Found"));
 
+        // Check Account is Active
+        if (!account.isActive()) {
+            throw new AccountException("Account is closed");
+        }
+
         // 4 Validate Pin
         if (!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
             throw new InvalidPinException("Invalid security PIN");
@@ -270,13 +320,38 @@ public class AccountServiceImpl implements AccountService {
                 .collect(Collectors.toList());
     }
 
-
-
-    // TODO: Delete account
     @Override
-    public void deleteAccount(Long id) {
+    public void deleteAccount(String securityPin) {
 
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
-        accountRepository.deleteById(id);
+        String username = Objects.requireNonNull(SecurityContextHolder
+                        .getContext()
+                        .getAuthentication())
+                .getName();
+
+        Users user = userDetailsRepository.findByUsername(username)
+                .orElseThrow(() -> new AccountException("User Not Found"));
+
+        Account account = accountRepository.findByUser(user)
+                .orElseThrow(() -> new AccountException("Account Does Not Exists!!"));
+
+        // Check Account is Active
+        if (!account.isActive()) {
+            throw new AccountException("Account is already closed");
+        }
+
+        if(!passwordEncoder.matches(securityPin, account.getSecurityPin())) {
+            throw new InvalidPinException("Invalid security PIN");
+        }
+
+        if (!account.isActive()) {
+            throw new RuntimeException("Account is closed");
+        }
+
+        if(account.getBalance() > 0) {
+            throw new InsufficientBalanceException("Withdraw balance before deleting account");
+        }
+
+        account.setActive(false);
+        accountRepository.save(account);
     }
 }

@@ -83,17 +83,13 @@ public class AccountController {
         return ResponseEntity.ok(accounts);
     }
 
+    // Delete Account REST API
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteAccount(@RequestBody PinRequestDto pinRequestDto) {
 
-    
+        accountService.deleteAccount(pinRequestDto.securityPin());
 
-    // TODO: Delete user Account
-//    // Delete Account REST API
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deleteAccount(@PathVariable Long id) {
-//
-//        accountService.deleteAccount(id);
-//
-//        return ResponseEntity.ok("Account Deleted Successfully!!");
-//    }
+        return ResponseEntity.ok("Account Deleted Successfully!!");
+    }
 
 }
