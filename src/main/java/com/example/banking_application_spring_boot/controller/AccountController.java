@@ -21,6 +21,9 @@ public class AccountController {
     }
 
 
+    // TODO: Dockerize this project
+
+
     // Add Account REST API
     @PostMapping
     public ResponseEntity<AccountDto> createAccount(@RequestBody CreateAccountRequest createAccountRequest) {
