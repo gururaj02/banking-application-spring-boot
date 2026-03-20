@@ -24,6 +24,7 @@ public class AccountController {
     // TODO: Dockerize this project
     // TODO: Add tests - JUnit & Mockito
     // TODO: Add Loggers(AOP)
+    // TODO: Try to add Kafka
 
 
     // Add Account REST API
