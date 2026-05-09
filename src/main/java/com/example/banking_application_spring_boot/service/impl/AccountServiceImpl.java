@@ -50,29 +50,30 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDto createAccount(CreateAccountRequest createAccountRequest) {
 
-        // Get logged-in username
+        // 1. Validate input first
+        if (createAccountRequest.initialDeposit() <= 0) {
+            throw new InsufficientBalanceException("Initial deposit must be greater than zero");
+        }
+
+        // 2. Get logged-in username
         String username = Objects.requireNonNull(SecurityContextHolder
                         .getContext()
                         .getAuthentication())
                 .getName();
 
-        // Get user from DB
+        // 3. Get user from DB
         Users user = userDetailsRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Account account = user.getAccount();
 
-        // Case 1: Account already active
+        // 4. Account already active
         if (account != null && account.isActive()) {
             throw new AccountException("Account already exists");
         }
 
-        // Case 2: Account exists but closed → Reactivate
-        if (account != null && !account.isActive()) {
-
-            if (createAccountRequest.initialDeposit() <= 0) {
-                throw new InsufficientBalanceException("Initial deposit must be greater than zero");
-            }
+        // 5. Account exists but closed → Reactivate
+        if (account != null) {
 
             account.setActive(true);
             account.setSecurityPin(passwordEncoder.encode(createAccountRequest.securityPin()));
@@ -83,11 +84,7 @@ public class AccountServiceImpl implements AccountService {
             return AccountMapper.mapToAccountDto(savedAccount);
         }
 
-        if (createAccountRequest.initialDeposit() <= 0) {
-            throw new InsufficientBalanceException("Initial deposit must be greater than zero");
-        }
-
-        // Create account
+        // 6. Create account
         Account newAccount = new Account();
         newAccount.setAccountHolderName(createAccountRequest.accountHolderName());
         newAccount.setBalance(createAccountRequest.initialDeposit());

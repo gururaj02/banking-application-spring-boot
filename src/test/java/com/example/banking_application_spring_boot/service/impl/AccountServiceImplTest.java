@@ -151,17 +151,9 @@ public class AccountServiceImplTest {
     void testCreateAccount_invalidDeposit() {
 
         // Arrange
-        mockSecurityContext("gururaj");
-
         CreateAccountRequest request = new CreateAccountRequest(
                 "Gururaj", 0.0, "1234"
         );
-
-        Users user = new Users();
-        user.setAccount(null);
-
-        when(userDetailsRepository.findByUsername("gururaj"))
-                .thenReturn(Optional.of(user));
 
         // Act & Assert
         assertThrows(InsufficientBalanceException.class, () -> {
@@ -186,6 +178,11 @@ public class AccountServiceImplTest {
         assertThrows(RuntimeException.class, () -> {
             accountService.createAccount(request);
         });
+    }
+
+    @Test
+    void test_withdrawAmount() {
+
     }
 }
 
