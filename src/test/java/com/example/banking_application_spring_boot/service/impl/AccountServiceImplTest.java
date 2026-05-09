@@ -5,6 +5,7 @@ import com.example.banking_application_spring_boot.dto.CreateAccountRequest;
 import com.example.banking_application_spring_boot.entity.Account;
 import com.example.banking_application_spring_boot.entity.Users;
 import com.example.banking_application_spring_boot.exception.AccountException;
+import com.example.banking_application_spring_boot.exception.DepositOrWithdrawZeroRsException;
 import com.example.banking_application_spring_boot.exception.InsufficientBalanceException;
 import com.example.banking_application_spring_boot.repository.AccountRepository;
 import com.example.banking_application_spring_boot.repository.TransactionRepository;
@@ -148,20 +149,6 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    void testCreateAccount_invalidDeposit() {
-
-        // Arrange
-        CreateAccountRequest request = new CreateAccountRequest(
-                "Gururaj", 0.0, "1234"
-        );
-
-        // Act & Assert
-        assertThrows(InsufficientBalanceException.class, () -> {
-            accountService.createAccount(request);
-        });
-    }
-
-    @Test
     void testCreateAccount_userNotFound() {
 
         // Arrange
@@ -181,8 +168,70 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    void test_withdrawAmount() {
+    void testCreateAccount_invalidDeposit() {
 
+        // Arrange
+        CreateAccountRequest request = new CreateAccountRequest(
+                "Gururaj", 0.0, "1234"
+        );
+
+        // Act & Assert
+        assertThrows(InsufficientBalanceException.class, () -> {
+            accountService.createAccount(request);
+        });
+    }
+
+    @Test
+    void testDeposit_invalidDeposit() {
+        // Act & Assert
+        assertThrows(DepositOrWithdrawZeroRsException.class, () -> {
+            accountService.deposit(0, "1234");
+        });
+
+        // Verify no repository interaction
+        verifyNoInteractions(userDetailsRepository);
+        verifyNoInteractions(accountRepository);
+    }
+
+    @Test
+    void testDeposit_depositSuccess() {
+        // Arrange
+        mockSecurityContext("gururaj");
+
+        Users user = new Users();
+
+        Account account = new Account();
+        account.setActive(true);
+        account.setBalance(1000);
+        account.setSecurityPin("encodedPin");
+
+        when(userDetailsRepository.findByUsername("gururaj"))
+                .thenReturn(Optional.of(user));
+
+        when(accountRepository.findByUser(user))
+                .thenReturn(Optional.of(account));
+
+        when(passwordEncoder.matches("1234", "encodedPin"))
+                .thenReturn(true);
+
+        when(accountRepository.save(any(Account.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+
+        // Act
+        AccountDto result = accountService.deposit(500, "1234");
+
+        // Assert
+        assertNotNull(result);
+
+        // Verify balance updated
+        assertEquals(1500, account.getBalance());
+
+        // Verify save called
+        verify(accountRepository).save(account);
+
+        // Verify transaction recorded
+        verify(transactionService).recordDeposit(account, 500);
     }
 }
 
