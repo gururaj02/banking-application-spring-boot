@@ -233,9 +233,62 @@ public class AccountServiceImplTest {
         // Verify transaction recorded
         verify(transactionService).recordDeposit(account, 500);
     }
+
+    @Test
+    void testWithDraw_invalidWithdrawAmount() {
+        // Act & Assert
+        assertThrows(DepositOrWithdrawZeroRsException.class, () -> {
+            accountService.withdraw(0, "1234");
+        });
+
+        // Verify no repository interaction
+        verifyNoInteractions(userDetailsRepository);
+        verifyNoInteractions(accountRepository);
+    }
+
+    @Test
+    void testWithDraw_withdrawSuccess() {
+        // Arrange
+        mockSecurityContext("gururaj");
+
+        Users user = new Users();
+
+        Account account = new Account();
+        account.setActive(true);
+        account.setBalance(1000);
+        account.setSecurityPin("encodedPin");
+
+        when(userDetailsRepository.findByUsername("gururaj"))
+                .thenReturn(Optional.of(user));
+
+        when(accountRepository.findByUser(user))
+                .thenReturn(Optional.of(account));
+
+        when(passwordEncoder.matches("1234", "encodedPin"))
+                .thenReturn(true);
+
+        when(accountRepository.save(any(Account.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+
+        // Act
+        AccountDto result = accountService.withdraw(500, "1234");
+
+        // Assert
+        assertNotNull(result);
+
+        // Verify balance updated
+        assertEquals(500, account.getBalance());
+
+        // Verify save called
+        verify(accountRepository).save(account);
+
+        // Verify transaction recorded
+        verify(transactionService).recordWithdraw(account, 500);
+    }
 }
 
-// TODO: write more test cases for other cases like transactions, withdraw etc.,
+// TODO: write more test cases for other cases like transactions etc.,
 // TODO: Write Loggers
 // TODO: Add Simple events - like sending email etc., (for learning)
 // TODO: learn monitoring(Actuators)
