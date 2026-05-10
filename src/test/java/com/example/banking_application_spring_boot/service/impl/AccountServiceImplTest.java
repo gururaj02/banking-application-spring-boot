@@ -286,6 +286,66 @@ public class AccountServiceImplTest {
         // Verify transaction recorded
         verify(transactionService).recordWithdraw(account, 500);
     }
+
+    @Test
+    void deleteAccount_Success() {
+        // Arrange
+        mockSecurityContext("gururaj");
+
+        Users user = new Users();
+
+        Account account = new Account();
+        account.setActive(true);
+        account.setBalance(0);
+        account.setSecurityPin("encodedPin");
+
+        when(userDetailsRepository.findByUsername("gururaj"))
+                .thenReturn(Optional.of(user));
+
+        when(accountRepository.findByUser(user))
+                .thenReturn(Optional.of(account));
+
+        when(passwordEncoder.matches("1234", "encodedPin"))
+                .thenReturn(true);
+
+        when(accountRepository.save(any(Account.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        accountService.deleteAccount("1234");
+
+        // Assert
+        assertFalse(account.isActive());
+
+        verify(accountRepository).save(account);
+    }
+
+    @Test
+    void deleteAccount_ShouldThrowException_WhenAccountAlreadyClosed() {
+        // Arrange
+        mockSecurityContext("gururaj");
+
+        Users user = new Users();
+
+        Account account = new Account();
+        account.setActive(false);
+        account.setBalance(0);
+        account.setSecurityPin("encodedPin");
+
+        // Mock repository calls
+        when(userDetailsRepository.findByUsername("gururaj"))
+                .thenReturn(Optional.of(user));
+
+        when(accountRepository.findByUser(user))
+                .thenReturn(Optional.of(account));
+
+        // Act & Assert
+        AccountException exception = assertThrows(AccountException.class, () -> accountService.deleteAccount("1234"));
+
+        assertEquals("Account is already closed", exception.getMessage());
+
+        verify(accountRepository, never()).save(account);
+    }
 }
 
 // TODO: write more test cases for other cases like transactions etc.,
