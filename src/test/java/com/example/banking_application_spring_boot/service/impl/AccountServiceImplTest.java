@@ -348,8 +348,6 @@ public class AccountServiceImplTest {
     }
 }
 
-// TODO: write more test cases for other cases like transactions etc.,
-// TODO: Write Loggers
 // TODO: Add Simple events - like sending email etc., (for learning)
 // TODO: learn monitoring(Actuators)
 // TODO: Try to add scheduling anywhere possible (just for learning concepts)
