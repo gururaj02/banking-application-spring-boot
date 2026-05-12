@@ -3,6 +3,7 @@ package com.example.banking_application_spring_boot.aop;
 import com.example.banking_application_spring_boot.dto.AccountDto;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,12 @@ public class TransactionLoggingAspect {
 
         LOGGER.info("Deposit successful: Account Number = {}, Amount = {}", accountDto.id(), amount);
     }
+
+    @AfterThrowing(pointcut = "execution(* com.example.banking_application_spring_boot.service.impl.AccountServiceImpl.deposit(..)) && args(amount, securityPin)", throwing = "exception")
+    public void logDepositFailure(double amount, String securityPin, Exception exception) {
+        LOGGER.error("Deposit failed: Amount = {}, Error = {}", amount, exception.getMessage());
+    }
+
 }
 
 
