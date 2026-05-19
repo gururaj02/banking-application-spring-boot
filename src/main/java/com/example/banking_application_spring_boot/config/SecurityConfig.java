@@ -59,6 +59,6 @@ public class SecurityConfig {
     }
 
 
-    // TODO: Revice jwt and it's flow and working
+    // TODO: Revise jwt and it's flow and working
 
 }
