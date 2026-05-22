@@ -7,6 +7,7 @@ import com.example.banking_application_spring_boot.dto.TransactionDto;
 import com.example.banking_application_spring_boot.entity.Account;
 import com.example.banking_application_spring_boot.entity.Transaction;
 import com.example.banking_application_spring_boot.entity.Users;
+import com.example.banking_application_spring_boot.events.DepositEvent;
 import com.example.banking_application_spring_boot.exception.*;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
 import com.example.banking_application_spring_boot.mapper.TransactionMapper;
@@ -16,6 +17,7 @@ import com.example.banking_application_spring_boot.repository.UserDetailsReposit
 import com.example.banking_application_spring_boot.service.AccountService;
 import com.example.banking_application_spring_boot.service.TransactionService;
 import jakarta.transaction.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,13 +34,15 @@ public class AccountServiceImpl implements AccountService {
     private final TransactionService transactionService;
     private final TransactionRepository transactionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher publisher;
 
-    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionService transactionService, TransactionRepository transactionRepository, PasswordEncoder passwordEncoder) {
+    public AccountServiceImpl(AccountRepository accountRepository, UserDetailsRepository userDetailsRepository, TransactionService transactionService, TransactionRepository transactionRepository, PasswordEncoder passwordEncoder, ApplicationEventPublisher publisher) {
         this.accountRepository = accountRepository;
         this.userDetailsRepository = userDetailsRepository;
         this.transactionService = transactionService;
         this.transactionRepository = transactionRepository;
         this.passwordEncoder = passwordEncoder;
+        this.publisher = publisher;
     }
 
     private String generateAccountNumber() {
@@ -157,6 +161,8 @@ public class AccountServiceImpl implements AccountService {
 
         // Saving transaction
         transactionService.recordDeposit(account, amount);
+
+        publisher.publishEvent(new DepositEvent(account.getAccountNumber(), amount));
 
         return AccountMapper.mapToAccountDto(updatedAccount);
     }
