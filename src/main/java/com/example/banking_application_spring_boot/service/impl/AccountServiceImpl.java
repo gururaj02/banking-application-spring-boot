@@ -8,6 +8,7 @@ import com.example.banking_application_spring_boot.entity.Account;
 import com.example.banking_application_spring_boot.entity.Transaction;
 import com.example.banking_application_spring_boot.entity.Users;
 import com.example.banking_application_spring_boot.events.DepositEvent;
+import com.example.banking_application_spring_boot.events.WithdrawEvent;
 import com.example.banking_application_spring_boot.exception.*;
 import com.example.banking_application_spring_boot.mapper.AccountMapper;
 import com.example.banking_application_spring_boot.mapper.TransactionMapper;
@@ -207,6 +208,8 @@ public class AccountServiceImpl implements AccountService {
 
         // Saving transaction
         transactionService.recordWithdraw(account, amount);
+
+        publisher.publishEvent(new WithdrawEvent(account.getAccountNumber(), amount));
 
         return AccountMapper.mapToAccountDto(updatedAccount);
     }
