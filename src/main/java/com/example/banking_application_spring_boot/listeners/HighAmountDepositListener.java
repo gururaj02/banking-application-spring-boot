@@ -15,4 +15,7 @@ public class HighAmountDepositListener {
         // Logic to handle high amount deposit, e.g., send notification, log the event, etc.
         System.out.println("High amount deposit detected for account " + event.getAccountNumber() + ": $" + event.getAmount());
     }
+
+    // TODO: Implement logic to send email notification to the user about the high amount deposit
+    // TODO: Implement high amount transfer listener to handle transfers above a certain threshold
 }
